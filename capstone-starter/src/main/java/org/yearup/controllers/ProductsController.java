@@ -36,6 +36,17 @@ public class ProductsController {
         }
     }
 
+    @GetMapping("/byCategory")
+    @PreAuthorize("permitAll()")
+    public List<Product> listByCategoryId(@RequestParam(name = "cat", required = false) Integer categoryId
+    ) {
+        try {
+            return productDao.listByCategoryId(categoryId);
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Oops... our bad.");
+        }
+    }
+
     @GetMapping("{id}")
     @PreAuthorize("permitAll()")
     public Product getById(@PathVariable int id) {

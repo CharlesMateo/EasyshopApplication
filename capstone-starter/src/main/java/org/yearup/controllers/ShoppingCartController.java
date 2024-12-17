@@ -61,7 +61,7 @@ public class ShoppingCartController {
             }
 
             // Add the product to the shopping cart, or increase the quantity if it already exists
-            shoppingCartDao.addProduct(userId, productId);
+            shoppingCartDao.addProductToCart(userId, productId);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to add product to shopping cart.", e);
         }
@@ -81,7 +81,7 @@ public class ShoppingCartController {
             }
 
             // Update the product's quantity in the cart
-            shoppingCartDao.updateProductQuantity(userId, productId, cartItem.getQuantity());
+            shoppingCartDao.updateCartItem(userId, productId, cartItem.getQuantity());
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update cart item.", e);
         }
