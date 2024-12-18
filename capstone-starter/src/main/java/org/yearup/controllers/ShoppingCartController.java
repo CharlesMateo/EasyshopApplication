@@ -18,7 +18,7 @@ import java.security.Principal;
 @RestController
 @RequestMapping("/cart")
 @CrossOrigin
-@PreAuthorize("isAuthenticated()") // restrict access to logged-in users
+@PreAuthorize("isAuthenticated()")
 public class ShoppingCartController {
     private final ShoppingCartDao shoppingCartDao;
     private final UserDao userDao;
@@ -31,74 +31,53 @@ public class ShoppingCartController {
         this.productDao = productDao;
     }
 
-    // GET: Retrieve the shopping cart for the current user
     @GetMapping("")
     public ShoppingCart getCart(Principal principal) {
-        try {
-            String userName = principal.getName();
-            User user = userDao.getByUserName(userName);
-            int userId = user.getId();
+        String userName = principal.getName();
+        User user = userDao.getByUserName(userName);
+        ShoppingCart cart = shoppingCartDao.getByUserId(user.getId());
 
-            // Retrieve and return the shopping cart for the user
-            return shoppingCartDao.getByUserId(userId);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve shopping cart.", e);
-        }
+        // Use the HashMap to return all items
+        return cart;
     }
 
-    // POST: Add a product to the shopping cart
     @PostMapping("/products/{productId}")
-    public void addProductToCart(@PathVariable int productId, Principal principal) {
-        try {
-            String userName = principal.getName();
-            User user = userDao.getByUserName(userName);
-            int userId = user.getId();
+    public void addProductToCart(@PathVariable int productId, @RequestBody ShoppingCartItem cartItem, Principal principal) {
+        String userName = principal.getName();
+        User user = userDao.getByUserName(userName);
 
-            // Check if the product exists
-            Product product = productDao.getById(productId);
-            if (product == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found.");
-            }
-
-            // Add the product to the shopping cart, or increase the quantity if it already exists
-            shoppingCartDao.addProductToCart(userId, productId);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to add product to shopping cart.", e);
+        Product product = productDao.getById(productId);
+        if (product == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found.");
         }
+
+        cartItem.setProduct(product);
+        shoppingCartDao.addItem(user.getId(), cartItem);
     }
 
-    // PUT: Update the quantity of a product in the cart
     @PutMapping("/products/{productId}")
-    public void updateCartItem(@PathVariable int productId, @RequestBody ShoppingCartItem cartItem, Principal principal) {
-        try {
-            String userName = principal.getName();
-            User user = userDao.getByUserName(userName);
-            int userId = user.getId();
+    public void updateItemQuantity(@PathVariable int productId, @RequestBody ShoppingCartItem cartItem, Principal principal) {
+        String userName = principal.getName();
+        User user = userDao.getByUserName(userName);
 
-            // Ensure the quantity is valid
-            if (cartItem.getQuantity() <= 0) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantity must be greater than zero.");
-            }
-
-            // Update the product's quantity in the cart
-            shoppingCartDao.updateCartItem(userId, productId, cartItem.getQuantity());
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update cart item.", e);
+        if (cartItem.getQuantity() <= 0) {
+            shoppingCartDao.removeItem(user.getId(), productId);
+        } else {
+            shoppingCartDao.updateItem(user.getId(), productId, cartItem.getQuantity());
         }
     }
 
-    // DELETE: Clear the shopping cart for the current user
+    @DeleteMapping("/products/{productId}")
+    public void removeItemFromCart(@PathVariable int productId, Principal principal) {
+        String userName = principal.getName();
+        User user = userDao.getByUserName(userName);
+        shoppingCartDao.removeItem(user.getId(), productId);
+    }
+
     @DeleteMapping("")
     public void clearCart(Principal principal) {
-        try {
-            String userName = principal.getName();
-            User user = userDao.getByUserName(userName);
-            int userId = user.getId();
-
-            // Clear all items from the user's cart
-            shoppingCartDao.clearCart(userId);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to clear shopping cart.", e);
-        }
+        String userName = principal.getName();
+        User user = userDao.getByUserName(userName);
+        shoppingCartDao.clearCart(user.getId());
     }
 }
