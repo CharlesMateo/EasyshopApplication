@@ -55,7 +55,7 @@ public class MySqlShoppingCartDao extends MySqlDaoBase implements ShoppingCartDa
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement("""
                      INSERT INTO shopping_cart(user_id, product_id, quantity)
-                     VALUES (?, ?, 1)""", PreparedStatement.RETURN_GENERATED_KEYS);
+                     VALUES (?, ?, 1)""", PreparedStatement.RETURN_GENERATED_KEYS)
         ) {
             statement.setInt(1, userId);
             statement.setInt(2, product.getProductId());
