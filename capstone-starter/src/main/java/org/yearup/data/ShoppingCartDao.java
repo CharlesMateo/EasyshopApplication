@@ -1,20 +1,14 @@
 package org.yearup.data;
 
+import org.yearup.models.Product;
 import org.yearup.models.ShoppingCart;
 import org.yearup.models.ShoppingCartItem;
 
-import java.util.List;
-
-public interface ShoppingCartDao {
+public interface ShoppingCartDao
+{
     ShoppingCart getByUserId(int userId);
-
-    //List<ShoppingCartItem> getItems (int userId);
-
-    void addItem(int userId, ShoppingCartItem item);
-
-    void updateItem(int userId, int productId, int quantity);
-
-    void removeItem(int userId, int productId);
-
-    void clearCart(int userId);
+    // add additional method signatures here
+    void addProduct(int userId, Product product);
+    void update(int userId, ShoppingCartItem item);
+    void delete(int userId);
 }
